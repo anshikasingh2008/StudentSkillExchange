@@ -1,0 +1,19 @@
+# Compiled classes
+out/
+*.class
+
+# Generated at runtime — not part of the source
+data/skill_exchange.db
+exports/*.csv
+resources/skill_catalog.txt
+
+# Keep the empty folders tracked
+!data/.gitkeep
+!exports/.gitkeep
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+*.iml
+.idea/

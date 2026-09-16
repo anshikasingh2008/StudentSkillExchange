@@ -1,8 +1,0 @@
-# name|CATEGORY|description
-Python Programming|TECHNOLOGY|Basics to intermediate Python
-Guitar Basics|MUSIC|Chords, strumming, and basic songs
-Public Speaking|LIFE_SKILLS|Confidence and structuring a talk
-Sketching|ART_AND_DESIGN|Pencil sketching fundamentals
-Spanish Conversation|LANGUAGE|Everyday conversational Spanish
-Data Structures|ACADEMICS|DSA concepts for interviews
-Badminton|SPORTS|Footwork, smashes, and match strategy
