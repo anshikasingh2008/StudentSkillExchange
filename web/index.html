@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Skill Exchange</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>🎓 Student Skill Exchange</h1>
+  <p class="tagline">Teach what you know. Learn what you don't. Trade with credits.</p>
+</header>
+
+<nav id="tabs">
+  <button class="tab-btn active" data-tab="students">Students</button>
+  <button class="tab-btn" data-tab="skills">Skills</button>
+  <button class="tab-btn" data-tab="match">Find a Teacher</button>
+  <button class="tab-btn" data-tab="requests">Requests</button>
+  <button class="tab-btn" data-tab="concurrency">Concurrency Demo</button>
+</nav>
+
+<main>
+
+  <!-- STUDENTS TAB -->
+  <section id="students" class="tab-panel active">
+    <div class="grid">
+      <div class="card">
+        <h2>Register a Student</h2>
+        <form id="form-register">
+          <input name="name" placeholder="Full name" required>
+          <input name="email" type="email" placeholder="Email" required>
+          <input name="branch" placeholder="Branch (e.g. CSE)" required>
+          <input name="year" type="number" min="1" max="4" placeholder="Year (1-4)" required>
+          <button type="submit">Register</button>
+        </form>
+
+        <h2>Offer / Want a Skill</h2>
+        <form id="form-offer-want">
+          <select name="studentId" id="ow-student" required></select>
+          <select name="skillId" id="ow-skill" required></select>
+          <select name="kind" id="ow-kind">
+            <option value="offer">I can teach this</option>
+            <option value="want">I want to learn this</option>
+          </select>
+          <select name="level" id="ow-level">
+            <option>BEGINNER</option>
+            <option>INTERMEDIATE</option>
+            <option>ADVANCED</option>
+            <option>EXPERT</option>
+          </select>
+          <button type="submit">Save</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>All Students</h2>
+        <div id="students-list" class="list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS TAB -->
+  <section id="skills" class="tab-panel">
+    <div class="grid">
+      <div class="card">
+        <h2>Add a Skill to the Catalog</h2>
+        <form id="form-add-skill">
+          <input name="name" placeholder="Skill name" required>
+          <select name="category" id="skill-category" required></select>
+          <input name="description" placeholder="Short description">
+          <button type="submit">Add Skill</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Skill Catalog</h2>
+        <div id="skills-list" class="list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MATCH TAB -->
+  <section id="match" class="tab-panel">
+    <div class="card">
+      <h2>Find Teachers for a Skill</h2>
+      <form id="form-find-teachers">
+        <select name="requesterId" id="find-requester" required></select>
+        <select name="skillId" id="find-skill" required></select>
+        <button type="submit">Find Matches</button>
+      </form>
+      <div id="teachers-list" class="list"></div>
+    </div>
+
+    <div class="card">
+      <h2>Create Exchange Request</h2>
+      <form id="form-create-request">
+        <select name="requesterId" id="req-requester" required></select>
+        <select name="providerId" id="req-provider" required></select>
+        <select name="skillId" id="req-skill" required></select>
+        <input name="credits" type="number" min="1" placeholder="Credits to offer" required>
+        <button type="submit">Send Request</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- REQUESTS TAB -->
+  <section id="requests" class="tab-panel">
+    <div class="card">
+      <h2>All Exchange Requests</h2>
+      <button id="btn-export">⬇ Export history to CSV</button>
+      <div id="requests-list" class="list"></div>
+    </div>
+
+    <div class="card">
+      <h2>Accept / Complete / Rate</h2>
+      <form id="form-accept">
+        <input name="requestId" type="number" placeholder="Request ID" required>
+        <button type="submit">Accept</button>
+      </form>
+      <form id="form-complete">
+        <input name="requestId" type="number" placeholder="Request ID" required>
+        <button type="submit">Complete</button>
+      </form>
+      <form id="form-rate">
+        <input name="requestId" type="number" placeholder="Request ID" required>
+        <input name="stars" type="number" min="1" max="5" placeholder="Stars (1-5)" required>
+        <button type="submit">Rate Provider</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- CONCURRENCY DEMO TAB -->
+  <section id="concurrency" class="tab-panel">
+    <div class="card">
+      <h2>⚡ Multithreading Demo</h2>
+      <p>
+        Launches several threads that all try to <strong>accept the same pending request at once</strong>.
+        The service layer's <code>acceptRequest()</code> is <code>synchronized</code>, so exactly one thread
+        wins the race — this is a live demonstration of thread safety.
+      </p>
+      <form id="form-concurrency">
+        <input name="requestId" type="number" placeholder="Pending Request ID" required>
+        <input name="threads" type="number" min="2" max="20" value="5" placeholder="Number of threads" required>
+        <button type="submit">Run Demo</button>
+      </form>
+      <pre id="concurrency-log" class="log"></pre>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
