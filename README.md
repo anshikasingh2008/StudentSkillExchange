@@ -1,152 +1,181 @@
 # Student Skill Exchange Platform
 
-A console-based Java application where students list skills they can
-teach and skills they want to learn, get matched with peers, and
-trade sessions using a simple credit system.
+A Java application where students can list skills they can teach, list skills they want to learn, find suitable peers, and manage skill-exchange requests using a simple credit system.
 
-Built as a Java course project — the design deliberately touches
-every topic on a typical Java syllabus (see mapping below).
+The primary interface is a command-line console menu. A browser-based web UI is also included as an optional extension; it uses the same Java backend and SQLite database.
 
 ## Requirements
-- JDK 17 or later (uses `switch` expressions, text blocks, `var`)
-- No external server needed — persistence uses SQLite, a file-based
-  database, via the bundled JDBC driver in `lib/sqlite-jdbc.jar`
-  (org.xerial sqlite-jdbc 3.45.3.0, bundles native libraries for
-  Windows, macOS, and Linux — nothing extra to install)
 
+- JDK 17 or later. The project uses switch expressions and text blocks.
+- A terminal: PowerShell on Windows, or bash/zsh on macOS/Linux.
+- No IDE, database server, or separate dependency installation is required. The SQLite JDBC driver is included in `lib/`.
 
+Verify Java is installed:
 
-## How to run
-
-**macOS / Linux:**
 ```bash
-javac -cp "lib/*" -d out $(find src/main/java -name "*.java")
-java -cp "out:lib/*" com.skillexchange.ui.SkillExchangeApp
+java -version
+javac -version
 ```
 
-**Windows (PowerShell):**
+Both commands should show version 17 or later.
+
+## Run the console application
+
+Run these commands from the project root, the folder containing `src/`, `lib/`, and `web/`.
+
+### Windows PowerShell
+
 ```powershell
+# Compile
 javac -cp "lib/*" -d out (Get-ChildItem -Recurse -Filter *.java -Path src\main\java | ForEach-Object { $_.FullName })
+
+# Start the console application
 java -cp "out;lib/*" com.skillexchange.ui.SkillExchangeApp
 ```
 
-Note the classpath separator differs: `:` on macOS/Linux, `;` on
-Windows. Also note PowerShell doesn't have a Unix-style `find`, so
-compiling needs the `Get-ChildItem` form above instead of
-`$(find ...)`.
+### macOS/Linux
 
-## Web frontend
-
-**macOS / Linux:**
 ```bash
+# Compile
 javac -cp "lib/*" -d out $(find src/main/java -name "*.java")
-java -cp "out:lib/*" com.skillexchange.web.WebApp 8080
+
+# Start the console application
+java -cp "out:lib/*" com.skillexchange.ui.SkillExchangeApp
 ```
 
-**Windows (PowerShell):**
+Windows uses `;` to separate classpath entries; macOS/Linux use `:`.
+
+When the application starts, the terminal displays this menu:
+
+```text
+---- MENU ----
+1.  Register student
+2.  Add skill to catalog
+3.  Offer / want a skill (as a student)
+4.  Find teachers for a skill
+5.  Create exchange request
+6.  Accept a pending request
+7.  Complete a request & rate provider
+8.  List all students
+9.  List all requests
+10. Export request history to CSV
+11. Run concurrency demo (multithreading)
+0.  Exit
+```
+
+### First run
+
+On the first launch, the application automatically creates `data/skill_exchange.db` and a starter skill catalog at `resources/skill_catalog.txt`. No manual configuration is needed.
+
+## Optional web UI
+
+The web UI is an additional feature, not the required course interface. It runs from the terminal and is served by the Java application itself.
+
+### Windows PowerShell
+
 ```powershell
 javac -cp "lib/*" -d out (Get-ChildItem -Recurse -Filter *.java -Path src\main\java | ForEach-Object { $_.FullName })
 java -cp "out;lib/*" com.skillexchange.web.WebApp 8080
 ```
 
-REST API summary (all JSON responses, POST bodies as
-`application/x-www-form-urlencoded`):
+### macOS/Linux
+
+```bash
+javac -cp "lib/*" -d out $(find src/main/java -name "*.java")
+java -cp "out:lib/*" com.skillexchange.web.WebApp 8080
+```
+
+Open `http://localhost:8080` in a browser. Press `Ctrl+C` in the terminal to stop the server.
+
+## Features
+
+- Student registration with name, email, branch, year, and credits
+- Skill catalog with categories and descriptions
+- Teaching offers and learning requests
+- Teacher matching based on offered skills
+- Exchange-request lifecycle: create, accept, complete, and rate
+- Credit transfer after a completed exchange
+- SQLite persistence through JDBC
+- CSV export of exchange history to `exports/`
+- Thread-safe request acceptance, demonstrated with a multithreading race
+- Optional REST API and browser frontend
+
+## REST API summary
+
+All API responses are JSON. POST requests use `application/x-www-form-urlencoded` bodies.
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET/POST | `/api/students` | list / register students |
-| GET/POST | `/api/skills` | list / add catalog skills |
-| POST | `/api/offer`, `/api/want` | link a student to a skill |
-| GET | `/api/teachers?skillId=&requesterId=` | ranked matches |
-| GET/POST | `/api/requests` | list / create exchange requests |
-| POST | `/api/accept`, `/api/complete`, `/api/rate` | request lifecycle |
-| GET | `/api/export` | write CSV to `exports/` |
-| POST | `/api/concurrency-demo` | run the threading race, return log |
+| GET/POST | `/api/students` | List or register students |
+| GET/POST | `/api/skills` | List or add catalog skills |
+| POST | `/api/offer`, `/api/want` | Link a student to a skill |
+| GET | `/api/teachers?skillId=&requesterId=` | Find ranked teacher matches |
+| GET/POST | `/api/requests` | List or create exchange requests |
+| POST | `/api/accept`, `/api/complete`, `/api/rate` | Manage a request lifecycle |
+| GET | `/api/export` | Export CSV history to `exports/` |
+| POST | `/api/concurrency-demo` | Run the thread-safety demonstration |
 
-## Project layout
+## Project structure
 
-```
+```text
 src/main/java/com/skillexchange/
-  model/       User (abstract), Student, Skill, SkillOffer,
-               SkillExchangeRequest, Rateable & Matchable interfaces
+  model/       User, Student, Skill, SkillOffer, SkillExchangeRequest,
+               Rateable and Matchable
   enums/       SkillCategory, ProficiencyLevel, ExchangeStatus
-  exception/   SkillExchangeException (base) and 4 specific
-               checked subclasses
-  service/     SkillExchangeManager (facade + in-memory collections),
-               MatchEngine (singleton matching logic)
-  dao/         DatabaseManager (singleton JDBC connection + schema),
-               StudentDAO, SkillDAO, ExchangeRequestDAO
-  thread/      ConcurrentMatchDemo (multithreading demo)
-  util/        FileExporter (character-stream I/O: CSV export,
-               catalog import)
-  ui/          SkillExchangeApp (console menu, the entry point)
-  web/         ApiServer (REST API + static file serving), WebApp (entry point)
+  exception/   Custom checked exceptions
+  service/     SkillExchangeManager and MatchEngine
+  dao/         SQLite JDBC connection, schema, and DAO classes
+  thread/      ConcurrentMatchDemo
+  util/        FileExporter for catalog import and CSV export
+  ui/          SkillExchangeApp (console entry point)
+  web/         ApiServer and WebApp (web entry point)
 
-web/           Frontend: index.html, style.css, app.js
+web/           HTML, CSS, and JavaScript frontend
+lib/           Bundled SQLite JDBC and SLF4J JAR files
+data/          Generated SQLite database
+exports/       Generated CSV files
+resources/     Generated starter skill catalog
 ```
 
-## How this maps to the syllabus
+## Java concepts demonstrated
 
-| Syllabus topic | Where it lives |
+| Topic | Implementation |
 |---|---|
-| Classes, objects, constructors, `this`, access modifiers | `model/*.java` |
-| Inheritance & polymorphism | `User` (abstract) → `Student`; `displayProfile()`/`getRole()` overridden |
+| Classes, objects, constructors, access modifiers | `model/` package |
+| Inheritance and polymorphism | Abstract `User` extended by `Student` |
 | Interfaces | `Rateable`, `Matchable` |
-| Enums (with constructors/fields) | `SkillCategory`, `ProficiencyLevel` |
-| Singleton pattern | `MatchEngine`, `DatabaseManager` |
-| Exception handling, custom exceptions, throw/throws | `exception/*`, used throughout `service/SkillExchangeManager.java` |
-| Collections Framework (List, Map, ArrayList, HashMap) | `SkillExchangeManager` (`ConcurrentHashMap`, `ArrayList`) |
-| Multithreading & synchronization | `acceptRequest()` synchronized block + `thread/ConcurrentMatchDemo.java` |
-| I/O Streams (character streams) | `util/FileExporter.java` (BufferedReader/BufferedWriter) |
-| JDBC | `dao/*.java` — `PreparedStatement`, `ResultSet`, CRUD, driver loading |
-| Strings, arrays, Scanner input | `ui/SkillExchangeApp.java` |
+| Enums | `SkillCategory`, `ProficiencyLevel`, `ExchangeStatus` |
+| Singleton pattern | `DatabaseManager`, `MatchEngine` |
+| Exception handling | Custom exceptions in `exception/` |
+| Collections | `ConcurrentHashMap`, `ArrayList`, `List`, `Map` |
+| Multithreading and synchronization | `ConcurrentMatchDemo` and synchronized request acceptance |
+| File I/O | `BufferedReader`/`BufferedWriter` catalog and CSV handling |
+| JDBC | DAO classes, prepared statements, result sets, CRUD operations |
+| Strings, arrays, Scanner | Console input in `SkillExchangeApp` |
 
-## Extending to JPA
+## Suggested evaluation demo
 
-The `dao/` package is hand-written JDBC by design so every line maps
-directly to what the syllabus teaches. To extend this into the JPA
-portion of the course: turn `Student`/`Skill`/`SkillExchangeRequest`
-into `@Entity` classes, add `@OneToMany`/`@ManyToOne` mappings for
-the offer/want/request relationships, and replace the DAO classes
-with a JPA `EntityManager` — the service layer (`SkillExchangeManager`)
-would barely need to change since it only calls DAO methods, not raw
-SQL.
-## Demo script for evaluation
-
-1. Register 2–3 students (menu 1)
-2. Have one offer a skill, another want it (menu 3)
-3. Find teachers for that skill (menu 4) — shows matching + polymorphism
-4. Create a request (menu 5), accept it (menu 6), complete & rate (menu 7)
-5. Export history to CSV (menu 10) — shows file I/O
-6. Run the concurrency demo (menu 11) on a *new* pending request — shows
-   several threads racing to accept it, only one winning (synchronization)
+1. Register two or three students using menu option 1.
+2. Add or use a catalog skill, then let one student offer it and another request it with menu option 3.
+3. Use menu option 4 to find teachers for the learner.
+4. Create an exchange request with option 5, accept it with option 6, then complete and rate it with option 7.
+5. Use option 10 to export the request history as CSV.
+6. Create one new pending request and use option 11 to demonstrate that only one concurrent thread can accept it.
 
 ## Troubleshooting
 
-**`NativeLibraryNotFoundException` / "Error opening connection" on startup**
-The bundled `lib/sqlite-jdbc.jar` must include native binaries for
-your OS. If you get this error, your jar is likely an incomplete
-build (e.g. one that only bundles macOS binaries). Re-download the
-official jar from
-`https://github.com/xerial/sqlite-jdbc/releases/download/3.45.3.0/sqlite-jdbc-3.45.3.0.jar`
-(~13.5 MB — if yours is closer to 1–2 MB, it's missing platform
-binaries) and replace `lib/sqlite-jdbc.jar` with it.
-
 **`error: no source files` after `javac`**
-This means the file-finding part of the compile command returned
-nothing. On Windows PowerShell, `$(find ...)` doesn't work — use the
-`Get-ChildItem` form shown above instead. Also double check you're
-running the command from the project **root** folder (the one
-containing `src`, `lib`, and `web`), not from inside `web/` or a
-nested duplicate folder.
+
+Run the command from the project root. In PowerShell, use the provided `Get-ChildItem` command rather than the macOS/Linux `find` command.
 
 **`Could not find or load main class`**
-Usually a typo in the fully-qualified class name (it's
-`com.skillexchange.web.WebApp`, not `com.skilllexchange...` — one
-`l` in "skill") or the `out` folder is empty because the compile
-step above failed. Check `out/com/skillexchange/web/WebApp.class`
-exists before re-running.
 
-**SLF4J warning ("Failed to load class StaticLoggerBinder")**
-Harmless — it's just SQLite's logging library falling back to a
-no-op logger since none is configured. Doesn't affect functionality.
+Compile first, then confirm that `out/com/skillexchange/ui/SkillExchangeApp.class` exists. Check that the classpath separator matches your operating system.
+
+**`NativeLibraryNotFoundException` or database connection error**
+
+Confirm that `lib/sqlite-jdbc.jar` is present and has not been replaced with an incomplete JAR.
+
+**SLF4J warning on startup**
+
+The message about `StaticLoggerBinder` is harmless for this project. SQLite continues to work with no logging implementation configured.
